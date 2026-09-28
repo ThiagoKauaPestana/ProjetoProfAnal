@@ -1,0 +1,43 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "API FastAPI (teste local)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": [
+        "app.main:app",
+        "--reload"
+      ],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "DATABASE_URL": "sqlite:///./local.db"
+      },
+      "jinja": true
+    },
+    {
+      "name": "API FastAPI (PostgreSQL)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": [
+        "app.main:app",
+        "--reload"
+      ],
+      "cwd": "${workspaceFolder}",
+      "envFile": "${workspaceFolder}\\.env",
+      "jinja": true
+    },
+    {
+      "name": "Testes pytest",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": [
+        "-q"
+      ],
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}

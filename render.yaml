@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: auditorio-inteligente-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: auditorio-inteligente-db
+          property: connectionString
+
+databases:
+  - name: auditorio-inteligente-db
+    plan: free
+    postgresMajorVersion: "15"
+    databaseName: auditorio_inteligente
+    user: auditorio_user
