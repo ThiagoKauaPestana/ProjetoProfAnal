@@ -38,7 +38,8 @@ executar `Activate.ps1` nem alterar a politica de seguranca do PowerShell.
 
 Para experimentar a API sem instalar um banco, use no VS Code
 **Executar e Depurar > API FastAPI (teste local)**. Essa opcao usa um arquivo
-SQLite apenas para desenvolvimento. Depois acesse `http://localhost:8000/docs`.
+SQLite apenas para desenvolvimento. Depois acesse `http://localhost:8000/`
+para abrir o painel ou `http://localhost:8000/docs` para testar a API.
 
 Para executar com a arquitetura final em PostgreSQL, inicie o Docker Desktop e
 rode:
@@ -73,7 +74,8 @@ docker compose up -d
 Depois, acesse `http://localhost:8000/docs`. Quem ja possui Python 3.12 pode
 criar a `.venv` com o proprio Python, sem usar `uv`. Quem ja possui PostgreSQL
 15+ pode dispensar o Docker e ajustar `DATABASE_URL` no arquivo `.env`.
-A documentação interativa fica disponível em `http://localhost:8000/docs`.
+O painel web fica disponível em `http://localhost:8000/` e a documentação
+interativa da API em `http://localhost:8000/docs`.
 
 No VS Code, abra a pasta `g15` (nao a pasta acima dela). As configuracoes em
 `.vscode` selecionam o ambiente `.venv`. Para PostgreSQL, use **Executar e

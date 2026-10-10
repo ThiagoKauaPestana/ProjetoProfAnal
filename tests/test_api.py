@@ -23,13 +23,21 @@ def criar_evento(client):
 
 
 def test_status_da_api(client):
-    response = client.get("/")
+    response = client.get("/api/status")
 
     assert response.status_code == 200
     assert response.json() == {
         "status": "ok",
         "servico": "auditorio-inteligente-api",
     }
+
+
+def test_frontend(client):
+    response = client.get("/")
+
+    assert response.status_code == 200
+    assert "Auditório Inteligente" in response.text
+    assert "/static/app.js" in response.text
 
 
 def test_cria_e_lista_espaco(client):
