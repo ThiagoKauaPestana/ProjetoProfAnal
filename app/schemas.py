@@ -180,6 +180,11 @@ class LoginIn(BaseModel):
     senha: str
 
 
+class PerfilUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    papel: Literal["organizador", "participante"]
+
+
 class UsuarioOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int

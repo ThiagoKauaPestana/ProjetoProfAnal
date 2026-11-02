@@ -1,5 +1,5 @@
 /* Sprint 3 v2 — inscrições, autenticação e gestão visual integrada à API. */
-const sprint3 = { user: null, authMode: 'login', minhas: [], filtro: {}, catalogo: [] };
+const sprint3 = { user: null, authMode: 'login', minhas: [], filtro: {}, catalogo: [], usuarios: [] };
 const s3 = selector => document.querySelector(selector);
 const safe = value => escapeHTML(value ?? '');
 const ativo = i => i.status === 'confirmada' || i.status === 'lista_espera';
@@ -11,6 +11,7 @@ function updateIdentity() {
   document.querySelectorAll('.organizer-only').forEach(el => { el.hidden = !organizer; });
   document.querySelectorAll('.participant-only').forEach(el => { el.hidden = !isParticipant(); });
   s3('#sessionName').textContent = sprint3.user?.nome || 'Visitante';
+  s3('#sessionRole').textContent = organizer ? 'Administrador' : isParticipant() ? 'Usuário' : 'Visitante';
   s3('#authButton').textContent = sprint3.user ? 'Sair' : 'Entrar / Cadastrar';
   const current = document.querySelector('.view.active');
   if (!current || current.hidden) showView('catalogo');
@@ -34,7 +35,9 @@ function setAuthMode(mode) {
 }
 s3('#authButton').addEventListener('click', async () => {
   if (sprint3.user) {
-    sessionStorage.removeItem('g15_token'); sprint3.user = null; sprint3.minhas = [];
+    sessionStorage.removeItem('g15_token'); sprint3.user = null; sprint3.minhas = []; sprint3.usuarios = [];
+    s3('#usersResults').textContent = '';
+    s3('#managementResults').textContent = '';
     updateIdentity(); renderCatalog(); showView('catalogo'); toast('Sessão encerrada.');
   } else { setAuthMode('login'); s3('#authDialog').showModal(); }
 });
@@ -145,6 +148,8 @@ async function loadManagement() {
   } catch (error) { toast(error.message, true); }
 }
 document.addEventListener('click', event => {
+  const usersNav = event.target.closest('[data-view="usuarios"]');
+  if (usersNav) loadUsers();
   const login = event.target.closest('[data-login-required]');
   if (login) { setAuthMode('login'); s3('#authDialog').showModal(); }
   const enroll = event.target.closest('[data-enroll]');
@@ -157,3 +162,58 @@ document.addEventListener('click', event => {
 const originalRenderAll = renderAll;
 renderAll = function () { originalRenderAll(); populateSelects(); if (!Object.keys(sprint3.filtro).length) sprint3.catalogo = state.sessoes; renderCatalog(); };
 restoreSession().then(() => { showView(window.canOrganize() ? 'dashboard' : 'catalogo'); });
+
+async function loadUsers() {
+  if (!window.canOrganize()) return;
+  s3('#usersResults').textContent = 'Carregando usuários…';
+  try {
+    sprint3.usuarios = await api('/auth/usuarios');
+    renderUsers();
+  } catch (error) {
+    sprint3.usuarios = [];
+    s3('#usersResults').textContent = error.message;
+  }
+}
+
+function renderUsers() {
+  const term = s3('#searchUsers').value.trim().toLowerCase();
+  const users = sprint3.usuarios.filter(u => `${u.nome} ${u.email}`.toLowerCase().includes(term));
+  s3('#usersResults').innerHTML = users.length ? `<table><thead><tr><th>Nome</th><th>E-mail</th><th>Situação</th><th>Perfil</th><th>Ação</th></tr></thead><tbody>${users.map(u => `<tr>
+    <td>${safe(u.nome)}${u.id === sprint3.user.id ? ' (você)' : ''}</td><td>${safe(u.email)}</td>
+    <td>${u.ativo ? 'Ativo' : 'Inativo'}</td><td><select class="profile-select" aria-label="Perfil de ${safe(u.nome)}" data-user-profile="${u.id}" ${u.id === sprint3.user.id ? 'disabled' : ''}>
+      <option value="participante" ${u.papel === 'participante' ? 'selected' : ''}>Usuário (participante)</option>
+      <option value="organizador" ${u.papel === 'organizador' ? 'selected' : ''}>Administrador (organizador)</option>
+    </select></td><td><button type="button" class="secondary-button" data-save-profile="${u.id}" ${u.id === sprint3.user.id ? 'disabled' : ''}>Salvar perfil</button></td></tr>`).join('')}</tbody></table>` : '<p>Nenhum usuário encontrado.</p>';
+}
+
+s3('#searchUsers').addEventListener('input', renderUsers);
+s3('#refreshUsers').addEventListener('click', loadUsers);
+let pendingProfile = null;
+document.addEventListener('click', event => {
+  const button = event.target.closest('[data-save-profile]');
+  if (!button || !window.canOrganize()) return;
+  const id = Number(button.dataset.saveProfile);
+  const user = sprint3.usuarios.find(u => u.id === id);
+  if (!user) return;
+  const papel = s3(`[data-user-profile="${id}"]`).value;
+  if (papel === user.papel) { toast('O usuário já possui esse perfil.'); return; }
+  const label = papel === 'organizador' ? 'Administrador' : 'Usuário';
+  pendingProfile = {id, papel};
+  s3('#profileDescription').textContent = `Alterar o perfil de ${user.nome} (${user.email}) para ${label}? ${papel === 'organizador' ? 'Essa conta poderá criar, alterar e excluir espaços, eventos, sessões e gerenciar inscrições.' : 'Essa conta passará a ter acesso somente às funções de participante.'}`;
+  s3('#profileDialog').showModal();
+});
+s3('#profileForm').addEventListener('submit', async event => {
+  event.preventDefault();
+  if (!pendingProfile || !window.canOrganize()) return;
+  const {id, papel} = pendingProfile;
+  const button = event.currentTarget.querySelector('button[type="submit"]');
+  button.disabled = true;
+  try {
+    await api(`/auth/usuarios/${id}/perfil`, {method:'PATCH',body:JSON.stringify({papel})});
+    pendingProfile = null;
+    s3('#profileDialog').close();
+    await loadUsers();
+    toast('Perfil atualizado. A pessoa deve atualizar a página para ver os menus.');
+  } catch (error) { toast(error.message,true); }
+  finally { button.disabled = false; }
+});

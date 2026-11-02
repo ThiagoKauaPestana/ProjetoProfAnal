@@ -57,6 +57,16 @@ Nenhuma migração é necessária: as tabelas novas são criadas na subida da AP
 | POST | `/auth/token` | público | mesmo login em formulário (botão Authorize) |
 | GET | `/auth/me` | logado | dados do usuário |
 | POST | `/auth/organizadores` | organizador | cria outro organizador |
+| GET | `/auth/usuarios` | organizador | lista usuários, sem senhas |
+| PATCH | `/auth/usuarios/{id}/perfil` | organizador | altera o papel de outra conta |
+
+No painel, **Usuários e perfis** permite buscar contas por nome/e-mail e
+selecionar **Administrador (organizador)** ou **Usuário (participante)**.
+O cadastro público continua criando participantes. A API consulta o papel
+atual no banco a cada requisição, inclusive para tokens emitidos antes da
+troca. Atualizar a página recarrega os menus da pessoa afetada.
+O administrador não pode remover o próprio acesso; o organizador inicial
+configurado no ambiente mantém o perfil administrativo após reinicializações.
 
 ### Catálogo (leitura pública; escrita só organizador)
 | Rota | Filtros |

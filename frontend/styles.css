@@ -233,5 +233,9 @@ tbody tr:hover { background: #fdfbfb; }
 .s3-muted { color: #777; font-size: 13px; }
 #managementResults { margin-top: 20px; }
 #managementResults td small { display: block; opacity: .7; }
+.profile-select { min-width: 190px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px; color: var(--ink); background: white; }
+#usuariosView .table-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 0 0 20px; }
+#usuariosView :disabled { opacity: .55; cursor: not-allowed; }
+#sessionName.avatar { width: auto; min-width: 40px; max-width: 150px; padding: 0 12px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 #authNameField[hidden] { display: none; }
 @media (max-width: 600px) { .sprint-panel { padding: 14px; } }

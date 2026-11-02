@@ -39,6 +39,7 @@
         <button class="nav-item" data-view="catalogo">📅 Encontrar atividades</button>
         <button class="nav-item participant-only" data-view="minhas">🎟 Minhas inscrições</button>
         <button class="nav-item organizer-only" data-view="gestao">👥 Gerenciar inscrições</button>
+        <button class="nav-item organizer-only" data-view="usuarios">⚙ Usuários e perfis</button>
       </nav>
 
       <div class="sidebar-footer">
@@ -58,7 +59,7 @@
         </div>
         <div class="topbar-actions">
           <a class="docs-link" href="/docs" target="_blank" rel="noreferrer">Documentação API</a>
-          <span id="sessionName" class="avatar">Visitante</span><button id="authButton" class="secondary-button" type="button">Entrar</button>
+          <span id="sessionRole" class="badge neutral">Visitante</span><span id="sessionName" class="avatar">Visitante</span><button id="authButton" class="secondary-button" type="button">Entrar</button>
         </div>
       </header>
 
@@ -174,6 +175,14 @@
           <label class="inline-check"><input name="incluir_canceladas" type="checkbox"> Incluir canceladas</label><button class="primary-button" type="submit">Consultar</button>
         </form><div id="managementResults" class="table-wrap" aria-live="polite"><p>Selecione um evento para consultar as inscrições.</p></div></div>
       </section>
+      <section class="view organizer-only" id="usuariosView">
+        <div class="page-heading"><div><span class="eyebrow">Administração</span><h1>Usuários e perfis</h1><p>Administradores gerenciam espaços, eventos, sessões e inscrições. Usuários reservam vagas e acompanham suas inscrições.</p></div></div>
+        <div class="sprint-panel">
+          <div class="table-toolbar"><label class="search-box"><input type="search" id="searchUsers" aria-label="Buscar usuários" placeholder="Buscar por nome ou e-mail"></label><button type="button" id="refreshUsers" class="secondary-button">Atualizar usuários</button></div>
+          <p class="s3-muted">A troca afeta o acesso da conta imediatamente. Você não pode remover seu próprio acesso administrativo.</p>
+          <div id="usersResults" class="table-wrap" aria-live="polite"></div>
+        </div>
+      </section>
     </main>
   </div>
 
@@ -228,6 +237,13 @@
     </form>
   </dialog>
 
+  <dialog id="profileDialog" class="entity-dialog">
+    <form id="profileForm">
+      <div class="dialog-header"><h2>Confirmar troca de perfil</h2><button type="button" class="icon-button close-dialog" aria-label="Fechar">×</button></div>
+      <p id="profileDescription"></p>
+      <div class="dialog-actions"><button type="button" class="secondary-button close-dialog">Cancelar</button><button type="submit" class="primary-button">Confirmar alteração</button></div>
+    </form>
+  </dialog>
   <dialog id="authDialog" class="entity-dialog">
     <form id="authForm">
       <div class="dialog-header"><div><span class="eyebrow">Acesso ao sistema</span><h2 id="authTitle">Entrar</h2></div><button type="button" class="icon-button close-dialog" aria-label="Fechar">×</button></div>
