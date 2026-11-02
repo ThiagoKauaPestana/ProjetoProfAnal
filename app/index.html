@@ -1,0 +1,197 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auditório Inteligente</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-icon">◈</span>
+        <div>
+          Auditório <strong>Inteligente</strong>
+          <small>GESTÃO DE ESPAÇOS</small>
+        </div>
+      </div>
+
+      <div class="nav-label">MENU PRINCIPAL</div>
+
+      <nav>
+        <button class="nav active" data-page="dashboard">
+          ▦ <span>Visão geral</span>
+        </button>
+        <button class="nav" data-page="espacos">
+          ▣ <span>Espaços</span>
+        </button>
+        <button class="nav" data-page="eventos">
+          ◈ <span>Eventos</span>
+        </button>
+        <button class="nav" data-page="sessoes">
+          ▤ <span>Sessões</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <span class="status-dot"></span>
+        <span id="api-status">Verificando conexão...</span>
+        <small>API FastAPI</small>
+      </div>
+    </aside>
+
+    <main>
+      <header>
+        <div>
+          <div class="eyebrow">PAINEL ADMINISTRATIVO</div>
+          <h1 id="page-title">Visão geral</h1>
+          <p id="page-subtitle">
+            Gerencie seus espaços e eventos em um só lugar.
+          </p>
+        </div>
+
+        <div class="header-right">
+          <span class="today" id="today"></span>
+          <div class="avatar">AI</div>
+        </div>
+      </header>
+
+      <section id="dashboard" class="page">
+        <div class="welcome">
+          <div>
+            <div class="welcome-kicker">
+              CENTRAL DE GERENCIAMENTO
+            </div>
+            <h2>
+              Organize cada espaço.<br>
+              Transforme cada evento.
+            </h2>
+            <p>
+              Controle ambientes, eventos e agendamentos
+              com praticidade e eficiência.
+            </p>
+            <button id="new-session" class="btn white">
+              + Agendar sessão
+            </button>
+          </div>
+          <div class="welcome-art">◈</div>
+        </div>
+
+        <div class="stats">
+          <article class="stat">
+            <div class="stat-icon blue">▣</div>
+            <span>Espaços cadastrados</span>
+            <strong id="count-espacos">—</strong>
+            <small>Ambientes disponíveis no sistema</small>
+          </article>
+
+          <article class="stat">
+            <div class="stat-icon purple">◈</div>
+            <span>Eventos cadastrados</span>
+            <strong id="count-eventos">—</strong>
+            <small>Programação organizada</small>
+          </article>
+
+          <article class="stat">
+            <div class="stat-icon orange">▤</div>
+            <span>Sessões agendadas</span>
+            <strong id="count-sessoes">—</strong>
+            <small>Atividades programadas</small>
+          </article>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <h3>Gerenciamento rápido</h3>
+              <p>Acesse os módulos do sistema</p>
+            </div>
+          </div>
+
+          <div class="quick">
+            <button data-go="espacos">
+              <span>▣</span>
+              <strong>Gerenciar espaços</strong>
+              <small>Salas e auditórios →</small>
+            </button>
+
+            <button data-go="eventos">
+              <span>◈</span>
+              <strong>Gerenciar eventos</strong>
+              <small>Cadastro e programação →</small>
+            </button>
+
+            <button data-go="sessoes">
+              <span>▤</span>
+              <strong>Gerenciar sessões</strong>
+              <small>Horários e reservas →</small>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section id="listing" class="page hidden">
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <h3 id="list-title"></h3>
+              <p id="list-desc"></p>
+            </div>
+            <button id="add" class="btn primary">
+              + Novo cadastro
+            </button>
+          </div>
+
+          <div class="toolbar">
+            <input id="search" type="search"
+                   placeholder="Buscar registros...">
+            <button class="btn subtle" id="refresh">
+              ↻ Atualizar
+            </button>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead id="thead"></thead>
+              <tbody id="tbody"></tbody>
+            </table>
+          </div>
+
+          <div id="list-empty" class="empty hidden">
+            Nenhum registro encontrado.
+          </div>
+        </div>
+      </section>
+
+      <div id="toast" role="status" aria-live="polite"></div>
+    </main>
+  </div>
+
+  <dialog id="modal">
+    <form id="entry-form">
+      <div class="modal-head">
+        <div>
+          <span class="eyebrow">AUDITÓRIO INTELIGENTE</span>
+          <h2 id="modal-title">Novo cadastro</h2>
+        </div>
+        <button type="button" class="close" id="close">×</button>
+      </div>
+
+      <div id="form-fields" class="form-fields"></div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn subtle" id="cancel">
+          Cancelar
+        </button>
+        <button type="submit" class="btn primary" id="save">
+          Salvar cadastro
+        </button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="script.js"></script>
+</body>
+</html>

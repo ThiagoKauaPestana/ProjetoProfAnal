@@ -20,22 +20,25 @@
       </a>
 
       <nav class="main-nav" aria-label="Navegação principal">
-        <button class="nav-item active" data-view="dashboard">
+        <button class="nav-item active organizer-only" data-view="dashboard">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13h6V4H4v9Zm0 7h6v-5H4v5Zm10 0h6v-9h-6v9Zm0-16v5h6V4h-6Z"/></svg>
           Visão geral
         </button>
-        <button class="nav-item" data-view="espacos">
+        <button class="nav-item organizer-only" data-view="espacos">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V3h10v4h6v14h-7v-4h-2v4H4Zm3-3h2v-3h6v3h2V10h-6V6H7v12Zm1-9h2v2H8V9Zm0 4h2v2H8v-2Zm5-2h2v2h-2v-2Z"/></svg>
           Espaços
         </button>
-        <button class="nav-item" data-view="eventos">
+        <button class="nav-item organizer-only" data-view="eventos">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 11h5v5H7v-5Zm-3 9V5h3V3h2v2h6V3h2v2h3v15H4Zm2-2h12v-8H6v8Z"/></svg>
           Eventos
         </button>
-        <button class="nav-item" data-view="sessoes">
+        <button class="nav-item organizer-only" data-view="sessoes">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22a10 10 0 1 1 0-20 10 10 0 0 1 0 20Zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm1-9h4v2h-6V7h2v4Z"/></svg>
           Sessões
         </button>
+        <button class="nav-item" data-view="catalogo">📅 Encontrar atividades</button>
+        <button class="nav-item participant-only" data-view="minhas">🎟 Minhas inscrições</button>
+        <button class="nav-item organizer-only" data-view="gestao">👥 Gerenciar inscrições</button>
       </nav>
 
       <div class="sidebar-footer">
@@ -55,11 +58,11 @@
         </div>
         <div class="topbar-actions">
           <a class="docs-link" href="/docs" target="_blank" rel="noreferrer">Documentação API</a>
-          <span class="avatar">G15</span>
+          <span id="sessionName" class="avatar">Visitante</span><button id="authButton" class="secondary-button" type="button">Entrar</button>
         </div>
       </header>
 
-      <section class="view active" id="dashboardView">
+      <section class="view active organizer-only" id="dashboardView">
         <div class="page-heading hero-heading">
           <div>
             <span class="eyebrow">Painel administrativo</span>
@@ -111,7 +114,7 @@
         </div>
       </section>
 
-      <section class="view" id="espacosView">
+      <section class="view organizer-only" id="espacosView">
         <div class="page-heading">
           <div><span class="eyebrow">Infraestrutura</span><h1>Espaços</h1><p>Gerencie auditórios, salas e laboratórios.</p></div>
           <button class="primary-button" data-open="espaco">+ Novo espaço</button>
@@ -124,7 +127,7 @@
         </article>
       </section>
 
-      <section class="view" id="eventosView">
+      <section class="view organizer-only" id="eventosView">
         <div class="page-heading">
           <div><span class="eyebrow">Programação</span><h1>Eventos</h1><p>Planeje e acompanhe os eventos institucionais.</p></div>
           <button class="primary-button" data-open="evento">+ Novo evento</button>
@@ -135,7 +138,7 @@
         </article>
       </section>
 
-      <section class="view" id="sessoesView">
+      <section class="view organizer-only" id="sessoesView">
         <div class="page-heading">
           <div><span class="eyebrow">Agenda acadêmica</span><h1>Sessões</h1><p>Controle horários e evite conflitos de espaço.</p></div>
           <button class="primary-button" data-open="sessao">+ Nova sessão</button>
@@ -144,6 +147,32 @@
           <div class="table-toolbar"><label class="search-box"><svg viewBox="0 0 24 24"><path d="m21 20-5.2-5.2a7 7 0 1 0-1.4 1.4L20 21l1-1ZM5 10a5 5 0 1 1 10 0 5 5 0 0 1-10 0Z"/></svg><input id="searchSessoes" type="search" placeholder="Buscar sessões"></label></div>
           <div class="table-wrap"><table><thead><tr><th>Sessão</th><th>Evento</th><th>Espaço</th><th>Data e horário</th><th></th></tr></thead><tbody id="sessoesTable"></tbody></table></div>
         </article>
+      </section>
+      <section class="view" id="catalogoView">
+        <div class="page-heading"><div><span class="eyebrow">Programação acadêmica</span><h1>Encontre sua próxima atividade</h1><p>Confira as vagas disponíveis e inscreva-se em sessões, palestras e workshops.</p></div></div>
+        <form id="catalogFilters" class="sprint-panel filter-grid">
+          <label>Buscar atividade<input name="busca" type="search" placeholder="Título, descrição ou responsável"></label>
+          <label>Evento<select name="evento_id"><option value="">Todos os eventos</option></select></label>
+          <label>Tipo<input name="tipo" placeholder="Ex.: palestra"></label>
+          <label>Data inicial<input name="data_de" type="date"></label>
+          <label>Data final<input name="data_ate" type="date"></label>
+          <label class="inline-check"><input type="checkbox" name="apenas_com_vagas"> Somente sessões com vagas</label>
+          <button class="primary-button" type="submit">Filtrar</button><button class="secondary-button" id="clearFilters" type="button">Limpar</button>
+        </form>
+        <div class="sprint-panel"><h2>Sessões disponíveis <small id="catalogCount"></small></h2><div id="catalogList" class="session-grid" aria-live="polite"></div></div>
+      </section>
+      <section class="view participant-only" id="minhasView">
+        <div class="page-heading"><div><span class="eyebrow">Área do participante</span><h1>Minhas inscrições</h1><p>Acompanhe suas vagas confirmadas e sua posição na fila de espera.</p></div></div>
+        <div class="sprint-panel"><label class="inline-check"><input type="checkbox" id="includeCanceled"> Mostrar inscrições canceladas</label><div id="myRegistrations" class="session-grid"></div></div>
+      </section>
+      <section class="view organizer-only" id="gestaoView">
+        <div class="page-heading"><div><span class="eyebrow">Área do organizador</span><h1>Gerenciar inscrições</h1><p>Consulte participantes e listas de espera por evento e sessão.</p></div></div>
+        <div class="sprint-panel"><form id="managementFilters" class="filter-grid">
+          <label>Evento<select name="evento_id"><option value="">Selecione um evento</option></select></label>
+          <label>Sessão<select name="sessao_id"><option value="">Todas as sessões</option></select></label>
+          <label>Status<select name="status"><option value="">Todos os status</option><option value="confirmada">Confirmada</option><option value="lista_espera">Fila de espera</option><option value="cancelada">Cancelada</option></select></label>
+          <label class="inline-check"><input name="incluir_canceladas" type="checkbox"> Incluir canceladas</label><button class="primary-button" type="submit">Consultar</button>
+        </form><div id="managementResults" class="table-wrap" aria-live="polite"><p>Selecione um evento para consultar as inscrições.</p></div></div>
       </section>
     </main>
   </div>
@@ -199,7 +228,19 @@
     </form>
   </dialog>
 
+  <dialog id="authDialog" class="entity-dialog">
+    <form id="authForm">
+      <div class="dialog-header"><div><span class="eyebrow">Acesso ao sistema</span><h2 id="authTitle">Entrar</h2></div><button type="button" class="icon-button close-dialog" aria-label="Fechar">×</button></div>
+      <div class="form-grid">
+        <label class="field full" id="authNameField" hidden><span>Nome completo</span><input name="nome" autocomplete="name"></label>
+        <label class="field full"><span>E-mail</span><input name="email" type="email" autocomplete="email" required></label>
+        <label class="field full"><span>Senha</span><input name="senha" type="password" minlength="6" autocomplete="current-password" required></label>
+      </div>
+      <div class="dialog-actions"><button type="button" class="secondary-button" id="toggleAuthMode">Criar conta</button><button type="submit" class="primary-button" id="submitAuth">Entrar</button></div>
+    </form>
+  </dialog>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="/static/app.js" defer></script>
+  <script src="/static/sprint3.js" defer></script>
 </body>
 </html>

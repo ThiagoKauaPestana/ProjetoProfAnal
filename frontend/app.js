@@ -22,7 +22,7 @@ function normalizeError(detail) {
 async function api(path, options = {}) {
   const response = await fetch(path, {
     ...options,
-    headers: { "Content-Type": "application/json", ...(options.headers || {}) }
+    headers: { "Content-Type": "application/json", ...(sessionStorage.getItem("g15_token") ? { Authorization: `Bearer ${sessionStorage.getItem("g15_token")}` } : {}), ...(options.headers || {}) }
   });
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
@@ -278,11 +278,11 @@ document.addEventListener("click", event => {
   const jump = event.target.closest("[data-view-jump]");
   if (jump) showView(jump.dataset.viewJump);
   const opener = event.target.closest("[data-open]");
-  if (opener) openEntity(opener.dataset.open);
+  if (opener && window.canOrganize?.()) openEntity(opener.dataset.open);
   const editor = event.target.closest("[data-edit]");
-  if (editor) openEntity(editor.dataset.edit, Number(editor.dataset.id));
+  if (editor && window.canOrganize?.()) openEntity(editor.dataset.edit, Number(editor.dataset.id));
   const deleter = event.target.closest("[data-delete]");
-  if (deleter) deleteEntity(deleter.dataset.delete, Number(deleter.dataset.id));
+  if (deleter && window.canOrganize?.()) deleteEntity(deleter.dataset.delete, Number(deleter.dataset.id));
   if (event.target.closest(".close-dialog")) event.target.closest("dialog").close();
 });
 

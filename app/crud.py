@@ -1,7 +1,15 @@
-from sqlalchemy import select, and_
+from datetime import date, datetime, time, timedelta
+
+from sqlalchemy import select, and_, func, or_
 from sqlalchemy.orm import Session
 
-from app import models, schemas
+from app import crud_inscricoes, models, schemas
+
+
+def _padrao_busca(termo: str) -> str:
+    """Padrão LIKE que trata %, _ e \\ digitados pelo usuário como texto comum."""
+    escapado = termo.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+    return f"%{escapado}%"
 
 
 def criar_espaco(db: Session, dados: schemas.EspacoCreate) -> models.Espaco:
@@ -30,6 +38,12 @@ def atualizar_espaco(
         setattr(espaco, campo, valor)
     db.commit()
     db.refresh(espaco)
+
+    # Se a capacidade do espaço aumentou, sessões que usam essa capacidade
+    # podem ter ganhado vagas: promove a lista de espera.
+    for sessao in espaco.sessoes:
+        crud_inscricoes.promover_fila(db, sessao)
+    db.commit()
     return espaco
 
 
@@ -46,8 +60,34 @@ def criar_evento(db: Session, dados: schemas.EventoCreate) -> models.Evento:
     return evento
 
 
-def listar_eventos(db: Session) -> list[models.Evento]:
-    return list(db.scalars(select(models.Evento)).all())
+def listar_eventos(
+    db: Session,
+    status: str | None = None,
+    busca: str | None = None,
+    data_de: date | None = None,
+    data_ate: date | None = None,
+) -> list[models.Evento]:
+    """
+    Catálogo de eventos. `data_de`/`data_ate` retornam os eventos que
+    acontecem (total ou parcialmente) dentro do intervalo informado.
+    """
+    stmt = select(models.Evento)
+    if status:
+        stmt = stmt.where(models.Evento.status == status)
+    if busca and busca.strip():
+        padrao = _padrao_busca(busca.strip())
+        stmt = stmt.where(
+            or_(
+                models.Evento.nome.ilike(padrao, escape="\\"),
+                models.Evento.descricao.ilike(padrao, escape="\\"),
+            )
+        )
+    if data_de is not None:
+        stmt = stmt.where(models.Evento.data_fim >= data_de)
+    if data_ate is not None:
+        stmt = stmt.where(models.Evento.data_inicio <= data_ate)
+    stmt = stmt.order_by(models.Evento.data_inicio, models.Evento.id)
+    return list(db.scalars(stmt).all())
 
 
 def obter_evento(db: Session, evento_id: int) -> models.Evento | None:
@@ -146,17 +186,77 @@ def atualizar_sessao(
         setattr(sessao, campo, valor)
     db.commit()
     db.refresh(sessao)
+
+    # Se a capacidade aumentou (ou o espaço mudou para um maior), quem estava
+    # na lista de espera é promovido automaticamente. Se a capacidade diminuiu,
+    # os já confirmados são mantidos e apenas novas promoções deixam de ocorrer.
+    crud_inscricoes.promover_fila(db, sessao)
+    db.commit()
+    db.refresh(sessao)
     return sessao
 
 
+def _inicio_do_dia(dia: date) -> datetime:
+    return datetime.combine(dia, time.min)
+
+
 def listar_sessoes(
-    db: Session, evento_id: int | None = None, espaco_id: int | None = None
+    db: Session,
+    evento_id: int | None = None,
+    espaco_id: int | None = None,
+    tipo: str | None = None,
+    busca: str | None = None,
+    data: date | None = None,
+    data_de: date | None = None,
+    data_ate: date | None = None,
+    apenas_com_vagas: bool = False,
 ) -> list[models.Sessao]:
-    stmt = select(models.Sessao)
+    """
+    Catálogo de sessões. `data` filtra um dia específico; `data_de`/`data_ate`
+    filtram sessões que COMEÇAM dentro do intervalo (inclusive).
+    """
+    stmt = select(models.Sessao).join(
+        models.Espaco, models.Sessao.espaco_id == models.Espaco.id
+    )
     if evento_id is not None:
         stmt = stmt.where(models.Sessao.evento_id == evento_id)
     if espaco_id is not None:
         stmt = stmt.where(models.Sessao.espaco_id == espaco_id)
+    if tipo and tipo.strip():
+        stmt = stmt.where(func.lower(models.Sessao.tipo) == tipo.strip().lower())
+    if busca and busca.strip():
+        padrao = _padrao_busca(busca.strip())
+        stmt = stmt.where(
+            or_(
+                models.Sessao.titulo.ilike(padrao, escape="\\"),
+                models.Sessao.descricao.ilike(padrao, escape="\\"),
+                models.Sessao.responsavel.ilike(padrao, escape="\\"),
+            )
+        )
+    if data is not None:
+        data_de = data_ate = data
+    if data_de is not None:
+        stmt = stmt.where(models.Sessao.data_hora_inicio >= _inicio_do_dia(data_de))
+    if data_ate is not None:
+        stmt = stmt.where(
+            models.Sessao.data_hora_inicio < _inicio_do_dia(data_ate + timedelta(days=1))
+        )
+    if apenas_com_vagas:
+        confirmadas = (
+            select(func.count(models.Inscricao.id))
+            .where(
+                models.Inscricao.sessao_id == models.Sessao.id,
+                models.Inscricao.status == models.STATUS_CONFIRMADA,
+            )
+            .correlate(models.Sessao)
+            .scalar_subquery()
+        )
+        capacidade = func.coalesce(
+            models.Sessao.capacidade_prevista, models.Espaco.capacidade
+        )
+        stmt = stmt.where(capacidade > confirmadas)
+
+    stmt = stmt.order_by(models.Sessao.data_hora_inicio, models.Sessao.id)
     return list(db.scalars(stmt).all())
 
 

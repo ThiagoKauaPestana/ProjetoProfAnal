@@ -42,6 +42,13 @@ O sistema de Gestão de Eventos e Auditórios é uma aplicação web com back-en
 - **Driver:** `psycopg2-binary`
 - O schema inicial (DDL) está versionado em `sql/init.sql` e as migrações
   incrementais ficam em `alembic/versions`.
+- **Execução em contêiner:** o banco de dados é provisionado via **Docker**
+  (imagem oficial `postgres`), o que padroniza o ambiente entre os
+  integrantes do grupo e evita divergência de versão/configuração do SGBD
+  instalado localmente. O container expõe a porta padrão do PostgreSQL
+  (5432) e o back-end se conecta a ele através da variável de ambiente
+  `DATABASE_URL` (arquivo `.env`), sem necessidade de instalar o PostgreSQL
+  na máquina de cada desenvolvedor.
 
 ### 2.3 Estrutura de dados (entidades principais)
 - **Espaco** — representa um ambiente físico que pode sediar sessões
@@ -60,6 +67,18 @@ Relacionamentos:
 - Um Espaço não pode ter duas Sessões com horários sobrepostos (regra de
   negócio de conflito, validada na camada de serviço antes do INSERT/UPDATE).
 
+### 2.3.1 Endpoints da API (CRUD)
+| Recurso  | Endpoints disponíveis |
+|----------|------------------------|
+| Espaços  | `POST /espacos`, `GET /espacos`, `GET /espacos/{id}`, `PUT /espacos/{id}`, `DELETE /espacos/{id}` |
+| Eventos  | `POST /eventos`, `GET /eventos`, `GET /eventos/{id}`, `PUT /eventos/{id}`, `DELETE /eventos/{id}` |
+| Sessões  | `POST /sessoes`, `GET /sessoes`, `GET /sessoes/{id}`, `PUT /sessoes/{id}`, `DELETE /sessoes/{id}` |
+
+O CRUD de Eventos foi completado nesta sprint com os endpoints `PUT
+/eventos/{id}` (atualização) e `DELETE /eventos/{id}` (remoção), deixando os
+três recursos principais (Espaços, Eventos e Sessões) com operações
+completas de criação, leitura, atualização e remoção.
+
 ### 2.4 Gestão de conflitos de uso do espaço físico
 Antes de criar ou atualizar uma Sessão, o back-end verifica se já existe
 outra sessão para o **mesmo espaço** cujo intervalo `[inicio, fim)` se
@@ -77,8 +96,6 @@ sessão(ões) conflitante(s), impedindo a dupla reserva do mesmo ambiente.
   do grupo (framework de front-end e forma de consumo da API REST).
 
 ### 2.6 Controle de versão
-- Repositório Git único do grupo (GitLab/GitHub), com commits individuais
-  por integrante para comprovar autoria/contribuição em cada sprint.
 - Entregas de sprint marcadas com tags anotadas (ex.: `SPRINT1`, `SPRINT2`).
 
 ## 3. Justificativa das escolhas

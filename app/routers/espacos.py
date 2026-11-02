@@ -3,11 +3,17 @@ from sqlalchemy.orm import Session
 
 from app import crud, schemas
 from app.database import get_db
+from app.deps import exigir_organizador
 
 router = APIRouter(prefix="/espacos", tags=["Espaços"])
 
 
-@router.post("", response_model=schemas.EspacoOut, status_code=201)
+@router.post(
+    "",
+    response_model=schemas.EspacoOut,
+    status_code=201,
+    dependencies=[Depends(exigir_organizador)],
+)
 def criar_espaco(dados: schemas.EspacoCreate, db: Session = Depends(get_db)):
     return crud.criar_espaco(db, dados)
 
@@ -25,7 +31,11 @@ def obter_espaco(espaco_id: int, db: Session = Depends(get_db)):
     return espaco
 
 
-@router.put("/{espaco_id}", response_model=schemas.EspacoOut)
+@router.put(
+    "/{espaco_id}",
+    response_model=schemas.EspacoOut,
+    dependencies=[Depends(exigir_organizador)],
+)
 def atualizar_espaco(
     espaco_id: int, dados: schemas.EspacoUpdate, db: Session = Depends(get_db)
 ):
@@ -35,7 +45,9 @@ def atualizar_espaco(
     return crud.atualizar_espaco(db, espaco, dados)
 
 
-@router.delete("/{espaco_id}", status_code=204)
+@router.delete(
+    "/{espaco_id}", status_code=204, dependencies=[Depends(exigir_organizador)]
+)
 def remover_espaco(espaco_id: int, db: Session = Depends(get_db)):
     espaco = crud.obter_espaco(db, espaco_id)
     if not espaco:
